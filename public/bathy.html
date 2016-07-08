@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>three.js - bathymetry</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+    body { margin: 0; overflow: hidden; }
+</style>
+</head>
+<body>
+<div id="webgl"></div>
+<script src="lib/jquery-3.0.0.min.js"></script>
+<script src="lib/three.min.js"></script>
+<script src="lib/TrackballControls.js"></script> 
+<script>
+
+    $.getJSON("stjernsund.json", function(data) {
+        //console.log(data.lon);
+        //console.log(data.lat);
+        addRenderer(data);
+    });
+
+    var controls, scene, camera, renderer;
+
+    function addRenderer(data) {
+        var width  = window.innerWidth,
+            height = window.innerHeight;
+
+        scene = new THREE.Scene();
+
+        var axes = new THREE.AxisHelper(200);
+        scene.add(axes);
+
+        camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        camera.position.set(0, -50, 50);
+
+        renderer = new THREE.WebGLRenderer({antialias:true});
+        renderer.setSize(width, height);
+        renderer.setClearColor( 0xFFFFFF );
+
+        var geometry = new THREE.Geometry();
+
+        var phi = 0.5*(data.lat_min+data.lat_max) * Math.PI / 180.0;
+        var degLatInMeters = 111132.954 - 559.822 * Math.cos(2.0*phi) + 1.175 * Math.cos(4.0*phi);
+        phi = 0.5*(data.lon_min+data.lon_max) * Math.PI / 180.0;
+        var degLonInMeters = 10*Math.PI * 6378137.0 * Math.cos(phi) / (180 * Math.sqrt(1 - 0.00669437999014 * Math.sin(phi) * Math.sin(phi)));
+        
+
+        var lon_offset = data.lon_min;
+        var lon_scale = data.lon_max - data.lon_min;
+
+        var lat_offset = data.lat_min;
+        var lat_scale = data.lat_max - data.lat_min;
+
+        if(lon_scale > lat_scale) {
+            lat_scale = lon_scale;
+        }
+        else {
+            lon_scale = lat_scale;
+        }
+		
+        
+
+        var depth_offset = data.depth_min;
+        var depth_scale = (data.depth_max - data.depth_min);// * (lon_scale * degreesLatInMeters);
+
+		for (var i = 0; i < data.vertices.length; ++i) {
+            var lon = data.lon[data.vertices[i][0]];
+            var lat = data.lat[data.vertices[i][1]];
+            var depth = data.vertices[i][2];
+            
+            var x = (lon-lon_offset) / lon_scale;
+            var y = (lat-lat_offset) / lat_scale;
+            var z = (depth-depth_offset) / depth_scale;
+
+			geometry.vertices.push(new THREE.Vector3(x,y,z));
+		}
+		
+		for (var i = 0; i < data.faces.length; ++i) {
+			geometry.faces.push(new THREE.Face3(data.faces[i][0],data.faces[i][1],data.faces[i][2]));
+		}
+
+		geometry.computeFaceNormals();
+
+        var materials = [
+            //new THREE.MeshBasicMaterial( { vertexColors: THREE.VertexColors } ),
+            new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true, wireframeLinewidth: 1} )
+        ];
+
+        //var plane = new THREE.Mesh(geometry, material);
+        var planeGroup = THREE.SceneUtils.createMultiMaterialObject(geometry, materials);
+        planeGroup.scale.x = 100;
+        planeGroup.scale.y = 100;
+        planeGroup.scale.z = 100;
+        scene.add(planeGroup);
+
+        console.log(planeGroup);
+
+
+        controls = new THREE.TrackballControls(camera);
+
+        controls.rotateSpeed = 1.0;
+        controls.zoomSpeed = 1.2;
+        controls.panSpeed = 0.8;
+
+        controls.noZoom = false;
+        controls.noPan = false;
+
+        controls.staticMoving = true;
+        controls.dynamicDampingFactor = 0.3;
+
+        document.getElementById('webgl').appendChild(renderer.domElement);
+
+        render();
+    }
+
+    function render() {
+        controls.update();    
+        requestAnimationFrame(render);
+        renderer.render(scene, camera);
+    }
+
+</script>
+</body>
+</html>
