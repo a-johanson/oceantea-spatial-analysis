@@ -25,7 +25,7 @@ def invalidZ(v):
 
 n_x = x.size
 n_y = y.size
-skip = 2
+step = 2
 
 # https://en.wikipedia.org/wiki/Latitude#Length_of_a_degree_of_latitude
 phi = np.median(y) * math.pi / 180.0
@@ -39,8 +39,8 @@ print("degLonInMeters:", degLonInMeters)
 vertices = []
 global2Local = np.full(z.shape, -1, dtype=int)
 
-for i in range(0, n_x, skip):
-	for j in range(0, n_y, skip):
+for i in range(0, n_x, step):
+	for j in range(0, n_y, step):
 		z_ij = z[i,j]
 		if invalidZ(z_ij):
 			continue
@@ -50,12 +50,12 @@ for i in range(0, n_x, skip):
 
 faces = []
 
-for i in range(0, n_x-skip, skip):
-	for j in range(0, n_y-skip, skip):
+for i in range(0, n_x-step, step):
+	for j in range(0, n_y-step, step):
 		a = (i, j)
-		b = (i+skip, j)
-		c = (i+skip, j+skip)
-		d = (i, j+skip)
+		b = (i+step, j)
+		c = (i+step, j+step)
+		d = (i, j+step)
 
 		b_nan = invalidZ(z[b])
 		c_nan = invalidZ(z[c])

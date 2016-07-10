@@ -6,7 +6,41 @@ $(document).ready(function() {
 });
 
 function colorScale(v) {
-	return new THREE.Color(1, v, 0);
+	if(v < 0.0) {
+		v = 0.0;
+	}
+	else if(v > 1.0) {
+		v = 1.0;
+	}
+
+	var colorStops = [
+		[0.0,     1, 0, 1],
+		[0.2,     0, 0, 1],
+		[0.4,     0, 1, 1],
+		[0.6,     0, 1, 0],
+		[0.8,     1, 1, 0],
+		[1.0,     1, 0, 0]
+	];
+
+	for(var i=1; i<colorStops.length; ++i) {
+		if(colorStops[i][0] >= v) {
+			var a = colorStops[i-1][0];
+			var b = colorStops[i  ][0];
+			var w_a = (b - v) / (b - a);
+			var w_b = 1.0 - w_a;
+			
+			var r_a = colorStops[i-1][1];
+			var r_b = colorStops[i  ][1];
+			var g_a = colorStops[i-1][2];
+			var g_b = colorStops[i  ][2];
+			var b_a = colorStops[i-1][3];
+			var b_b = colorStops[i  ][3];
+
+			return new THREE.Color(w_a*r_a + w_b*r_b, w_a*g_a + w_b*g_b, w_a*b_a + w_b*b_b);
+		}
+	}
+
+	return new THREE.Color(0, 0, 0);
 }
 
 function createGroundGeometry(model) {
@@ -74,8 +108,9 @@ function addRenderer(model) {
 	var depth_scale = (model.depth_max - model.depth_min);// * (lon_scale * degreesLatInMeters);
 
 	var materials = [
-		new THREE.MeshPhongMaterial( { vertexColors: THREE.VertexColors } ),
-		new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true, wireframeLinewidth: 1} )
+		new THREE.MeshBasicMaterial( { vertexColors: THREE.VertexColors } )
+		//new THREE.MeshPhongMaterial( { vertexColors: THREE.VertexColors } ),
+		//new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true, wireframeLinewidth: 1} )
 	];
 
 	var groundGroup = THREE.SceneUtils.createMultiMaterialObject(groundGeom, materials);
@@ -84,8 +119,8 @@ function addRenderer(model) {
 	groundGroup.scale.z = 100.0/depth_scale;
 	scene.add(groundGroup);
 
-	var ambientLight = new THREE.AmbientLight( 0xD0D0D0 );
-	scene.add(ambientLight);
+	//var ambientLight = new THREE.AmbientLight( 0xD0D0D0 );
+	//scene.add(ambientLight);
 	//var sunLight = new THREE.PointLight( 0x0000ff, 100, 0);
 	//var sphere = new THREE.SphereGeometry( 0.5, 16, 8 );
 	//sunLight.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: 0xff0040 } ) ) );
