@@ -78,14 +78,14 @@ model = {
 	"lat": y.tolist(),
 	"degLatInMeters": degLatInMeters,
 	"degLonInMeters": degLonInMeters,
-	"depth_min": float(np.nanmin(z)),
-	"depth_max": float(np.nanmax(z)),
+	"elevation_min": float(np.nanmin(z)),
+	"elevation_max": float(np.nanmax(z)),
 	"vertices": vertices, # [lon_id,lat_id,depth]
 	"faces": faces
 }
 
 
-with open("stjernsund.json", "w", encoding="utf-8") as f:
+with open("northern-norway.json", "w", encoding="utf-8") as f:
 	json.dump(model, f)
 
 
