@@ -31,6 +31,12 @@ app.debug = False
 def getBathymetryList():
 	return list(map(lambda s: s[:-5], filter(lambda s: s.endswith(".json"), os.listdir("data"))))
 
+def isAuth(headers):
+	try:
+		return True if "x-auth-userid" in headers and int(headers["x-auth-userid"]) >= 0 else False
+	except:
+		return False
+
 
 
 @app.route("/bathymetries", methods=["GET"])
@@ -43,8 +49,26 @@ def getSpecificBathymetry(region):
 	return send_from_directory("data", "{}.json".format(region), mimetype="application/json")
 
 
+@app.route("/bathymetries/<region>", methods=["DELETE"])
+def deleteBathymetry(region):
+	if not isAuth(request.headers):
+		return jsonify(success=False, message="Forbidden"), 403
+
+	path = os.path.join("data", secure_filename("{}.json".format(region)))
+	result = False
+	try:
+		os.remove(path)
+		result = True
+	except:
+		pass
+	return jsonify(success=result, message="Deleted" if result else "Could not delete data"), 200 if result else 500
+
+
 @app.route("/bathymetries/<region>", methods=["POST"])
 def uploadBathymetry(region):
+	if not isAuth(request.headers):
+		return jsonify(success=False, message="Forbidden"), 403
+	
 	if not ("dataFile" in request.files):
 		return jsonify(success=False, message="No input file provided"), 400
 	
