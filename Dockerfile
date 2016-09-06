@@ -9,4 +9,4 @@ RUN conda install numpy netcdf4 flask -y
 COPY . /usr/src/app
 
 EXPOSE 3338
-CMD ["python3","server.py"]
+CMD ["python3","server.py","--acceptAllHosts"]
