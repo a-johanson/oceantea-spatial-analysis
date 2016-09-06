@@ -17,6 +17,7 @@ from werkzeug.utils import secure_filename
 import json
 import os
 import time
+import sys
 
 from bathymetry import importBathymetry
 
@@ -98,5 +99,10 @@ def uploadBathymetry(region):
 
 
 if __name__ == "__main__":
-	#app.run(host='0.0.0.0')
-	app.run(threaded=True, port=3338, use_debugger=False, use_reloader=False)
+	acceptAllHosts = False
+    for arg in sys.argv:
+        if arg == "--acceptAllHosts":
+            acceptAllHosts = True
+			break
+    
+    app.run(host="0.0.0.0" if acceptAllHosts else "127.0.0.1", port=3338, threaded=True, use_debugger=False, use_reloader=False)
